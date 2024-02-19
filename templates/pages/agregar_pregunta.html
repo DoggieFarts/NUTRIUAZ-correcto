@@ -1,0 +1,38 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block content %}
+
+<form method="post" id="pregunta-form">
+    {% csrf_token %}
+    {{ form_pregunta.as_p }}
+    <div id="respuestas-formset">
+        {{ formset_respuesta.management_form }}
+        {% for form_respuesta in formset_respuesta %}
+            <div class="respuesta-form">
+                {{ form_respuesta.id }}
+                {{ form_respuesta.as_table }}
+                <div class="opciones" style="display: none;">
+                    {{ form_respuesta.opciones.label_tag }}
+                    {{ form_respuesta.opciones }}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    <button type="submit">Guardar Pregunta</button>
+</form>
+
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('#respuestas-formset').on('change', '[id$="-tipo"]', function() {
+            var tipoRespuesta = $(this).val();
+            var formContainer = $(this).closest('.respuesta-form');
+            var opcionesField = formContainer.find('.opciones');
+
+            opcionesField.toggle(tipoRespuesta === 'cerrada');
+        });
+    });
+</script>
+
+{% endblock content %}

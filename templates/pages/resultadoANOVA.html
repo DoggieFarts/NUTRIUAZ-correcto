@@ -1,0 +1,41 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block content %}
+  <div class="container">
+   
+
+    <h1>Seleccione Encuestas para Análisis ANOVA</h1>
+    <form method="POST">
+        {% csrf_token %}
+        {% for encuesta in encuestas %}
+            <input type="checkbox" id="encuesta{{ forloop.counter }}" name="encuestas" value="{{ encuesta.id }}">
+            <label for="encuesta{{ forloop.counter }}">{{ encuesta.nombre }}</label><br>
+        {% endfor %}
+        <input type="submit" value="Realizar ANOVA">
+    </form>
+  <table>
+    <thead>
+        <tr>
+       
+            {% for column in encuestas.columns %}
+                <th>{{ column }}</th>
+            {% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in encuestas.itertuples %}
+            <tr>
+                {% for item in row %}
+                    <td>{{ item }}</td>
+                {% endfor %}
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+  
+  
+  
+  
+  </div>
+{% endblock content %}

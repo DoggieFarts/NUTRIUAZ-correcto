@@ -1,0 +1,26 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block content %}
+
+    <div class="container">
+ 
+
+  <h2>Seleccione un grupo poblacional</h2>
+  <form method="POST" action="{% url 'seleccionar_grupo' encuesta.id %}">
+    {% csrf_token %}
+    <select name="grupo_poblacional">
+      {% for grupo in grupos %}
+        <option value="{{ grupo }}">{{ grupo }}</option>
+      {% endfor %}
+    </select>
+    <input type="submit" value="Submit">
+  </form>
+
+        
+    
+    
+    
+  
+    </div>
+{% endblock content %}

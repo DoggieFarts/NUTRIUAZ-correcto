@@ -1,0 +1,26 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block content %}
+
+    <h2>Encuestadores</h2>
+  <table>
+    <tr>
+      <th>Username</th>
+      <th>Email</th>
+      <th>ID</th>
+      <th>Número de encuestas aplicadas</th>
+    </tr>
+  {% for encuestador in encuestadores %}
+    <tr>
+      <td>{{ encuestador.username }}</td>
+      <td>{{ encuestador.email }}</td>
+      <td>{{ encuestador.id }}</td>
+      <td>{{ encuestador.num_encuestas }}</td>
+    </tr>
+  {% endfor %}
+  </table>
+
+
+
+{% endblock content %}

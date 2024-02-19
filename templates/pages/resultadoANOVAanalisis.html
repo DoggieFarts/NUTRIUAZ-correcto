@@ -1,0 +1,31 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block content %}
+  <div class="container">
+    {% for username, user_data in users_data.items %}
+        <details>
+            <summary>{{ username }}</summary>
+            <form method="POST">
+                <table>
+                    <tr>
+                        <th>Select</th>
+                        <th>Pregunta</th>
+                        <th>Respuesta</th>
+                        <th>Valor</th>
+                    </tr>
+                    {% for row in user_data %}
+                        <tr>
+                            <td><input type="checkbox" name="selected_rows"></td>
+                            <td>{{ row.pregunta__texto }}</td>
+                            <td>{{ row.respuesta__texto }}</td>
+                            <td>{{ row.respuesta__valor }}</td>
+                        </tr>
+                    {% endfor %}
+                </table>
+                <input type="submit" value="Realizar ANOVA">
+            </form>
+        </details>
+    {% endfor %}
+  </div>
+{% endblock %}

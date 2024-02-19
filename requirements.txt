@@ -1,8 +1,8 @@
-django
-gunicorn
-python-dotenv
-whitenoise
-django-admin-soft-dashboard==1.0.12
+django~=5.0.2
+python-dotenv~=1.0.1
 
 # psycopg2-binary
 # mysqlclient
+
+pandas~=2.2.0
+djangorestframework~=3.14.0
