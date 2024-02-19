@@ -3,38 +3,20 @@
 
 {% block content %}
   <div class="container">
-   
 
-    <h1>Seleccione Encuestas para Análisis ANOVA</h1>
-    <form method="POST">
-        {% csrf_token %}
-        {% for encuesta in encuestas %}
-            <input type="checkbox" id="encuesta{{ forloop.counter }}" name="encuestas" value="{{ encuesta.id }}">
-            <label for="encuesta{{ forloop.counter }}">{{ encuesta.nombre }}</label><br>
-        {% endfor %}
-        <input type="submit" value="Realizar ANOVA">
-    </form>
-  <table>
-    <thead>
-        <tr>
-       
-            {% for column in encuestas.columns %}
-                <th>{{ column }}</th>
-            {% endfor %}
-        </tr>
-    </thead>
-    <tbody>
-        {% for row in encuestas.itertuples %}
-            <tr>
-                {% for item in row %}
-                    <td>{{ item }}</td>
-                {% endfor %}
-            </tr>
-        {% endfor %}
-    </tbody>
-</table>
-  
-  
+
+      <form method="post">
+          {% for item in id_encuestas %}
+              <details>
+                  <summary>ID de Encuesta: {{ item.id_encuesta }}</summary>
+                  {% for nombre in item.nombres_encuesta %}
+                      <input type="checkbox" name="encuesta_seleccionada" value="{{ nombre }}">
+                      <label for="{{ nombre }}">Nombre de Encuesta: {{ nombre }}</label><br>
+                  {% endfor %}
+              </details>
+          {% endfor %}
+          <input type="submit" value="Seleccionar encuestas">
+      </form>
   
   
   </div>

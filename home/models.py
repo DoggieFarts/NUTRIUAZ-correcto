@@ -39,12 +39,7 @@ class RespuestaEconomica(models.Model):
     predefinido = models.BooleanField(default=False)
 
 
-class RespuestaUsuario(models.Model):
-    encuesta = models.ForeignKey(EncuestaEconomica, on_delete=models.CASCADE)
-    pregunta = models.ForeignKey(PreguntaEconomica, on_delete=models.CASCADE)
-    respuesta = models.ForeignKey(RespuestaEconomica, on_delete=models.CASCADE)
-    usuario = models.ForeignKey(User, on_delete=models.CASCADE)
-    sesion_encuesta = models.CharField(max_length=64, blank=True, null=True)
+
 
 
 class PreguntaAntropometria(models.Model):
@@ -67,7 +62,7 @@ class Encuesta(models.Model):
     encuestador = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=200)
     fecha = models.DateField()
-    # Agrega tus otros campos aquí
+
 
     class Meta:
         db_table = 'encuesta'
@@ -76,3 +71,9 @@ class PreguntaRespuesta(models.Model):
     encuesta = models.ForeignKey(Encuesta, related_name='pregunta_respuesta', on_delete=models.CASCADE)
     text = models.CharField(max_length=200)
     response = models.CharField(max_length=200)
+
+class RespuestaUsuario(models.Model):
+    encuesta = models.ForeignKey(Encuesta, on_delete=models.CASCADE)
+    pregunta_respuesta = models.ForeignKey(PreguntaRespuesta, on_delete=models.CASCADE)
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE)
+    sesion_encuesta = models.CharField(max_length=64, blank=True, null=True)
