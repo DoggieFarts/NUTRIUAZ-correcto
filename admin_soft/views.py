@@ -9,9 +9,9 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.contrib.auth.models import User
-from home.models import UserActivation, Encuesta
+from home.models import UserActivation, Encuesta, PreguntaRespuesta
 from .serializers import UserSerializer  # asegúrate de que tienes este serializador
-from .serializers import EncuestaSerializer, EncuestaListSerializer
+from .serializers import EncuestaListSerializer
 from admin_soft.forms import RegistrationForm, LoginForm, UserPasswordResetForm, UserSetPasswordForm, \
     UserPasswordChangeForm
 from home.models import EncuestaEconomica, PreguntaEconomica, RespuestaUsuario, PreguntaAntropometria, \
@@ -43,31 +43,49 @@ def tables(request):
 
 
 def anova(request):
-    # Diccionario donde almacenaremos las encuestas por cada id_encuesta
-    encuestas_por_id_encuesta = defaultdict(list)
-
     # Obtenemos todas las encuestas
     todas_las_encuestas = Encuesta.objects.all()
 
-    # Agrupamos las encuestas por 'id_encuesta'
-    for encuesta in todas_las_encuestas:
-        encuestas_por_id_encuesta[encuesta.id_encuesta].append(encuesta)
+    if request.method == 'POST':
+        print(request.POST)
+        # Aquí es donde recibes el formulario con las encuestas seleccionadas.
+        # Asegúrate de que 'encuestas_seleccionadas' contenga los IDs de la encuestas que seleccionó el usuario
+        encuestas_seleccionadas = request.POST.getlist('encuestas_seleccionadas')
 
-    # Preparamos los datos para la plantilla
-    data = []
-    for id_encuesta, encuestas in encuestas_por_id_encuesta.items():
-        # Obtenemos los nombres de la encuesta
-        nombres_encuesta = [encuesta.name for encuesta in encuestas]
+        print(f"Encuestas_seleccionadas en POST: {encuestas_seleccionadas}")  # Imprimir los IDs de encuesta seleccionados
 
-        data.append({
-            "id_encuesta": id_encuesta,
-            "nombres_encuesta": nombres_encuesta,
-        })
+        # Convertimos los IDs a enteros, ya que normalmente los datos POST se reciben como cadena.
+        encuestas_seleccionadas_ids = [int(id_encuesta) for id_encuesta in encuestas_seleccionadas]
 
-    return render(request, "pages/resultadoANOVA.html", {"id_encuestas": data})
+        # En este punto, puedes llamar a tu función preguntas_comunes para obtener las preguntas
+        # que son comunes a todas las encuestas seleccionadas.
+        preguntas_comunes_list = preguntas_comunes(encuestas_seleccionadas_ids)
 
+        print(f"Preguntas_comunes_list: {preguntas_comunes_list}")  # Imprimir las preguntas comunes encontradas
 
+        # Renderizamos un nuevo formulario (o página) para seleccionar preguntas de esta lista.
+        return render(request, 'pages/SeleccionarPreguntas.html', {'preguntas': preguntas_comunes_list})
+    else:
+        # Diccionario donde almacenaremos las encuestas por cada id_encuesta
+        encuestas_por_id_encuesta = defaultdict(list)
 
+        # Agrupamos las encuestas por 'id_encuesta'
+        for encuesta in todas_las_encuestas:
+            encuestas_por_id_encuesta[encuesta.id_encuesta].append(encuesta)
+
+        # Preparamos los datos para la plantilla
+        data = []
+        for id_encuesta, encuestas in encuestas_por_id_encuesta.items():
+            # Obtenemos los nombres de la encuesta
+            nombres_encuesta = [encuesta.name for encuesta in encuestas]
+
+            data.append({
+                "id_encuesta": id_encuesta,
+                "nombres_encuesta": nombres_encuesta,
+            })
+
+        # Renderizamos el formulario para seleccionar encuestas si no se ha enviado ninguna encuesta
+        return render(request, "pages/resultadoANOVA.html", {"id_encuestas": data})
 
 
 def vr(request):
@@ -197,19 +215,17 @@ def realizar_encuesta(request, encuesta_id):
                       {'encuesta': encuesta, 'preguntas': preguntas, 'rangos': rangos})
 
 
-
-
-
-class EncuestaView(APIView): #Vista para consumir DATOS DE ENTRADA DE ENCUESTAS
+class EncuestaView(APIView):  # Vista para consumir DATOS DE ENTRADA DE ENCUESTAS
     def post(self, request, format=None):
-      #  print(f"Data received in post: {request.data}")
+        #  print(f"Data received in post: {request.data}")
         serializer = EncuestaListSerializer(data=request.data)
         if serializer.is_valid():
             result = serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class RegisterView(APIView): #VISTA PARA REGISTRO DESDE APLICACION
+
+class RegisterView(APIView):  # VISTA PARA REGISTRO DESDE APLICACION
     def post(self, request):
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
@@ -219,7 +235,8 @@ class RegisterView(APIView): #VISTA PARA REGISTRO DESDE APLICACION
             return Response(UserSerializer(user).data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class ActivateView(APIView): #VISTA PARA ACTIVACION DE CUENTA api
+
+class ActivateView(APIView):  # VISTA PARA ACTIVACION DE CUENTA api
     def post(self, request, username):
         activation = UserActivation.objects.get(user__username=username)
         if not activation.is_activated:
@@ -228,14 +245,16 @@ class ActivateView(APIView): #VISTA PARA ACTIVACION DE CUENTA api
             return Response(status=status.HTTP_200_OK)
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
-def inactive_users(request): #VISTA ACTIVACION USUARIOS DESDE PANELL
+
+def inactive_users(request):  # VISTA ACTIVACION USUARIOS DESDE PANELL
     if request.user.is_authenticated:
         inactive_users = User.objects.filter(useractivation__is_activated=False)
         return render(request, 'pages/inactive_users.html', {"users": inactive_users})
     else:
         return HttpResponse("Inicie sesión para poder visualizar esta página.")
 
-def activate_user(request, username): #VISTA PARA PODER ACTIVAR EL USUARIO
+
+def activate_user(request, username):  # VISTA PARA PODER ACTIVAR EL USUARIO
     if request.user.is_authenticated:
         user_activation = UserActivation.objects.get(user__username=username)
         user_activation.is_activated = True
@@ -245,10 +264,37 @@ def activate_user(request, username): #VISTA PARA PODER ACTIVAR EL USUARIO
         return HttpResponse("No tiene permisos suficientes.")
 
 
-def encuestadores(request):
+def encuestadores(request):  # ENCONTRAR TODOS LOS ENCUESTADORES
     if request.user.is_authenticated:
         user_activations = UserActivation.objects.filter(created_through_api=True)
-        encuestadores = User.objects.filter(useractivation__in=user_activations).annotate(num_encuestas=Count('encuesta'))
-        return render(request, 'pages/encuestadores.html',{"encuestadores":encuestadores})
+        encuestadores = User.objects.filter(useractivation__in=user_activations).annotate(
+            num_encuestas=Count('encuesta'))
+        return render(request, 'pages/encuestadores.html', {"encuestadores": encuestadores})
     else:
         return HttpResponse("Inicie sesión para poder visualizar esta página.")
+
+
+def preguntas_comunes(encuestas_seleccionadas):
+    """
+    Encuentra todas las preguntas que son comunes a todas las encuestas seleccionadas.
+    """
+    if encuestas_seleccionadas:
+        try:
+            preguntas_comunes = set(PreguntaRespuesta.objects.filter(encuesta_id=encuestas_seleccionadas[0]).values_list('text', flat=True))
+            print(f"Inicial - Preguntas Comunes: {preguntas_comunes} en la encuesta {encuestas_seleccionadas[0]}")
+        except IndexError:
+            return "Encuesta con id " + str(encuestas_seleccionadas[0]) + " no encontrada en la base de datos"
+
+        for id_encuesta in encuestas_seleccionadas[1:]:
+            try:
+                preguntas_encuesta = set(PreguntaRespuesta.objects.filter(encuesta_id=id_encuesta).values_list('text', flat=True))
+            except IndexError:
+                return "Encuesta con id " + id_encuesta + " no encontrada en la base de datos"
+            print(f"\nEncuesta {id_encuesta} - Preguntas: {preguntas_encuesta}")
+            preguntas_comunes.intersection_update(preguntas_encuesta)
+            print(f"Preguntas comunes después de actualizar: {preguntas_comunes}")
+
+        return preguntas_comunes
+
+    else:
+        return "No se seleccionaron encuestas para analizar"

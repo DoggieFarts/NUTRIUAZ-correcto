@@ -1,0 +1,22 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block content %}
+  <div class="container">
+
+<h1>Selecciona las Preguntas</h1>
+<form method="post">
+    {% csrf_token %}
+    {% for pregunta in preguntas %}
+        <div>
+            <label for="{{ pregunta }}">{{ pregunta }}</label>
+            <input type="checkbox" id="{{ pregunta }}" name="{{ pregunta }}">
+        </div>
+    {% endfor %}
+    <input type="submit" value="Enviar">
+</form>
+</body>
+  
+  
+  </div>
+{% endblock content %}

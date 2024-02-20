@@ -2,22 +2,20 @@
 {% load static %}
 
 {% block content %}
-  <div class="container">
-
-
-      <form method="post">
-          {% for item in id_encuestas %}
-              <details>
-                  <summary>ID de Encuesta: {{ item.id_encuesta }}</summary>
-                  {% for nombre in item.nombres_encuesta %}
-                      <input type="checkbox" name="encuesta_seleccionada" value="{{ nombre }}">
-                      <label for="{{ nombre }}">Nombre de Encuesta: {{ nombre }}</label><br>
-                  {% endfor %}
-              </details>
-          {% endfor %}
-          <input type="submit" value="Seleccionar encuestas">
-      </form>
-  
-  
-  </div>
+    <div class="container">
+        <form method="post">
+            {% csrf_token %}
+            {% for item in id_encuestas %}
+                <details>
+                    <summary>ID de Encuesta: {{ item.id_encuesta }}</summary>
+                    {% for nombre in item.nombres_encuesta %}
+                        <!-- Aquí usamos el id de la encuesta en lugar del nombre -->
+                        <input type="checkbox" name="encuestas_seleccionadas" value="{{ item.id_encuesta }}">
+                        <label for="{{ nombre }}">Nombre de Encuesta: {{ nombre }}</label><br>
+                    {% endfor %}
+                </details>
+            {% endfor %}
+            <input type="submit" value="Seleccionar encuestas">
+        </form>
+    </div>
 {% endblock content %}

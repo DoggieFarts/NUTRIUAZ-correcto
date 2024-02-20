@@ -4,9 +4,6 @@ from django.contrib.auth.models import AbstractUser
 
 # Create your models here.
 
-
-
-
 class UserActivation(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     is_activated = models.BooleanField(default=False)
